@@ -16,5 +16,9 @@ const TransferWrapperStyled = styled.div`
       }
     }
   }
+
+  .ant-table-row {
+    cursor: pointer;
+  }
 `;
 export default TransferWrapperStyled;
