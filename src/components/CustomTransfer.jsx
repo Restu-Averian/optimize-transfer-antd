@@ -158,7 +158,7 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       const targetKeysRefSet = new Set(targetKeysRef?.current);
 
       const newFilterDatas = filterDatasRight?.filter((data) =>
-        targetKeysRefSet?.has(data?.key)
+        selectedKeyRightRef?.current?.has(data?.key)
       );
 
       selectedKeyRightRef?.current?.forEach((key) => {
@@ -185,8 +185,6 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
   }, []);
 
   useEffect(() => {
-    console.log("f;  ", filterDatasRight);
-
     if (isInit.current) {
       formInstance?.setFieldsValue({
         [name]: filterDatasRight?.map((data) => data?.[selectValue]),
@@ -218,19 +216,25 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <Button
           icon={<RightOutlined />}
-          onClick={() => {
-            onUpdate({
-              from: "left",
-            });
-          }}
+          disabled={objLengthSelected?.left === 0}
+          {...(objLengthSelected?.left > 0 && {
+            onClick: () => {
+              onUpdate({
+                from: "left",
+              });
+            },
+          })}
         />
         <Button
           icon={<LeftOutlined />}
-          onClick={() => {
-            onUpdate({
-              from: "right",
-            });
-          }}
+          disabled={objLengthSelected?.right === 0}
+          {...(objLengthSelected?.right > 0 && {
+            onClick: () => {
+              onUpdate({
+                from: "right",
+              });
+            },
+          })}
         />
       </div>
 
