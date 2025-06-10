@@ -20,6 +20,10 @@ const TransferComp_ = ({
 
   return (
     <Transfer
+      showSearch
+      filterOption={(inputValue, option) =>
+        option.data.indexOf(inputValue) > -1
+      }
       dataSource={dataSource}
       showSelectAll={false}
       selectAllLabels={[
