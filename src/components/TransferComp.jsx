@@ -8,11 +8,10 @@ const LIMIT = 10;
 
 const TransferComp_ = ({
   dataSource,
-  selectedKeyRef,
-  datasLength,
   page,
   setPage,
-  titleDropdown,
+  selectedKeyRef,
+  objLengthSelected,
   setObjLengthSelected,
   direction,
 }) => {
@@ -76,17 +75,21 @@ const TransferComp_ = ({
       showSelectAll={false}
       selectAllLabels={[
         <TransferMenuDropdown
-          titleDropdown={titleDropdown}
-          dataSource={filterDatas}
+          dataSourceByPage={filterDatas}
           dataSourceByDirection={dataSource}
           selectedKeyRef={selectedKeyRef}
+          objLengthSelected={objLengthSelected}
           setObjLengthSelected={setObjLengthSelected}
           direction={direction}
           startIdxRef={startIdxRef}
         />,
       ]}
       footer={() => (
-        <Footer page={page} setPage={setPage} datasLength={datasLength} />
+        <Footer
+          page={page}
+          setPage={setPage}
+          datasLength={dataSource?.length}
+        />
       )}
     >
       {({ filteredItems }) => {

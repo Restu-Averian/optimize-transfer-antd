@@ -1,16 +1,27 @@
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, Space } from "antd";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
 const TransferMenuDropdown_ = ({
   selectedKeyRef,
-  dataSource,
-  titleDropdown,
+  dataSourceByPage,
+  objLengthSelected,
   setObjLengthSelected,
   direction,
-  dataSourceByDirection,
+  dataSourceByDirection = [],
   startIdxRef,
 }) => {
+  const titleDropdown = useMemo(() => {
+    const selectedLength = objLengthSelected?.[direction];
+
+    const textItem = dataSourceByDirection?.length > 1 ? "items" : "item";
+
+    if (selectedLength > 0) {
+      return `${selectedLength}/${dataSourceByDirection?.length} ${textItem}`;
+    }
+    return `${dataSourceByDirection?.length} ${textItem}`;
+  }, [dataSourceByDirection, objLengthSelected, direction]);
+
   const menu = (
     <Menu>
       <Menu.Item
@@ -41,16 +52,16 @@ const TransferMenuDropdown_ = ({
       <Menu.Item
         key="select-current"
         onClick={() => {
-          const isCheckedAllCurrent = dataSource?.every((data) =>
+          const isCheckedAllCurrent = dataSourceByPage?.every((data) =>
             selectedKeyRef?.current?.has(data?.key)
           );
 
           if (isCheckedAllCurrent) {
-            dataSource?.forEach((d) => {
+            dataSourceByPage?.forEach((d) => {
               selectedKeyRef?.current.delete(d.key);
             });
           } else {
-            dataSource?.forEach((d) => {
+            dataSourceByPage?.forEach((d) => {
               selectedKeyRef?.current.add(d.key);
             });
           }

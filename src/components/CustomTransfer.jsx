@@ -1,5 +1,5 @@
 import { Button, Form, Input } from "antd";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import TransferComp from "./TransferComp";
 import TransferWrapperStyled from "../styled/TransferWrapper.styled";
@@ -12,8 +12,6 @@ const mockData = Array.from({
   // data: `content${i + 1}`,
   data: `content${i}`,
 }));
-
-const LIMIT = 10;
 
 const CustomTransfer_ = ({ name, selectValue = "key" }) => {
   const formInstance = Form.useFormInstance();
@@ -53,21 +51,6 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       return datasRight;
     }
   }, [oriDatasRef.current, targetKeysRef?.current, filterDatas]);
-
-  const titleDropdown = useCallback(
-    (direction) => {
-      const dataSourceLength =
-        direction === "left" ? filterDatas?.length : filterDatasRight?.length;
-
-      const textItem = dataSourceLength > 1 ? "items" : "item";
-
-      if (objLengthSelected?.[direction] > 0) {
-        return `${objLengthSelected?.[direction]}/${dataSourceLength} ${textItem}`;
-      }
-      return `${dataSourceLength} ${textItem}`;
-    },
-    [filterDatas, objLengthSelected, filterDatasRight]
-  );
 
   const onFakeFetch = () => {
     return new Promise((resolve) => {
@@ -128,7 +111,7 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
         newTargetKeys.push(key);
       });
 
-      targetKeysRef.current.forEach((key) => {
+      targetKeysRef?.current.forEach((key) => {
         newTargetKeys.push(key);
       });
 
@@ -189,18 +172,14 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       </Form.Item>
 
       <TransferComp
-        // dataSource={filterByPage({
-        //   arrDatas: filterDatas,
-        //   direction: "left",
-        // })}
         dataSource={filterDatas}
-        datasLength={filterDatas?.length}
         page={pageLeft}
         setPage={setPageLeft}
         selectedKeyRef={selectedKeyLeftRef}
-        titleDropdown={titleDropdown("left")}
+        objLengthSelected={objLengthSelected}
         setObjLengthSelected={setObjLengthSelected}
         direction="left"
+        targetKeysRef={targetKeysRef}
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -229,18 +208,14 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       </div>
 
       <TransferComp
-        // dataSource={filterByPage({
-        //   arrDatas: filterDatasRight,
-        //   direction: "right",
-        // })}
         dataSource={filterDatasRight}
-        datasLength={filterDatasRight?.length}
         page={pageRight}
         setPage={setPageRight}
         selectedKeyRef={selectedKeyRightRef}
+        objLengthSelected={objLengthSelected}
         setObjLengthSelected={setObjLengthSelected}
-        titleDropdown={titleDropdown("right")}
         direction="right"
+        targetKeysRef={targetKeysRef}
       />
     </TransferWrapperStyled>
   );
