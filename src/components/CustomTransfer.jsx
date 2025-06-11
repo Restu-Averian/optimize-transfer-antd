@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Checkbox, Form, Input } from "antd";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import TransferComp from "./TransferComp";
@@ -6,8 +6,8 @@ import TransferWrapperStyled from "../styled/TransferWrapper.styled";
 import { generateSelectKey } from "../helpers";
 
 const mockData = Array.from({
-  length: 1000000,
-  // length: 300000,
+  // length: 1000000,
+  length: 300000,
   // length: 50000,
   // length: 30,
 }).map((_, i) => ({
@@ -23,16 +23,17 @@ const CustomTransfer_ = ({
 }) => {
   const formInstance = Form.useFormInstance();
 
-  const [filterDatas, setFilterDatas] = useState([]);
   const [pageLeft, setPageLeft] = useState(1);
   const [pageRight, setPageRight] = useState(1);
   const [objLengthSelected, setObjLengthSelected] = useState({
     left: 0,
     right: 0,
   });
+  const [isAllEmp, setAllEmp] = useState(false);
 
   const isInit = useRef(false);
   const oriDatasRef = useRef([]);
+  const filterDatasRef = useRef([]);
   const targetKeysRef = useRef([]);
   const selectedKeyLeftRef = useRef(new Set([]));
   const selectedKeyRightRef = useRef(new Set([]));
@@ -63,7 +64,7 @@ const CustomTransfer_ = ({
 
       return generateSelectKey(datasRight);
     }
-  }, [oriDatasRef.current, targetKeysRef?.current, filterDatas]);
+  }, [oriDatasRef.current, targetKeysRef?.current, filterDatasRef?.current]);
 
   const onFakeFetch = () => {
     return new Promise((resolve) => {
@@ -101,7 +102,12 @@ const CustomTransfer_ = ({
 
       targetKeysRef.current = targetDatas?.map((item) => item?.key);
 
-      setFilterDatas(initFilterData);
+      filterDatasRef.current = initFilterData;
+
+      setObjLengthSelected({
+        left: 0,
+        right: 0,
+      });
     } catch (err) {
       console.log("er;  ", err);
     } finally {
@@ -116,7 +122,7 @@ const CustomTransfer_ = ({
    */
   const onUpdate = ({ from }) => {
     if (from === "left") {
-      const updtdFilterDatas = filterDatas?.filter((data) => {
+      const updtdFilterDatas = filterDatasRef?.current?.filter((data) => {
         return !selectedKeyLeftRef.current?.has(data?.key);
       });
 
@@ -132,7 +138,7 @@ const CustomTransfer_ = ({
 
       targetKeysRef.current = newTargetKeys;
 
-      setFilterDatas(generateSelectKey(updtdFilterDatas));
+      filterDatasRef.current = generateSelectKey(updtdFilterDatas);
 
       setObjLengthSelected((prev) => ({
         ...prev,
@@ -155,7 +161,10 @@ const CustomTransfer_ = ({
 
       targetKeysRef.current = Array.from(targetKeysRefSet);
 
-      setFilterDatas(generateSelectKey([...newFilterDatas, ...filterDatas]));
+      filterDatasRef.current = generateSelectKey([
+        ...newFilterDatas,
+        ...filterDatasRef.current,
+      ]);
 
       setObjLengthSelected((prev) => ({
         ...prev,
@@ -186,58 +195,91 @@ const CustomTransfer_ = ({
   }, [filterDatasRight]);
 
   return (
-    <TransferWrapperStyled>
+    <>
       <Form.Item name={name} hidden>
         <Input />
       </Form.Item>
 
-      <TransferComp
-        dataSource={filterDatas}
-        page={pageLeft}
-        setPage={setPageLeft}
-        selectedKeyRef={selectedKeyLeftRef}
-        objLengthSelected={objLengthSelected}
-        setObjLengthSelected={setObjLengthSelected}
-        direction="left"
-        objSelectIdxRef={objSelectIdxRef}
-      />
+      <Checkbox
+        onChange={({ target: { checked } }) => {
+          setAllEmp(checked);
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <Button
-          icon={<RightOutlined />}
-          disabled={objLengthSelected?.left === 0}
-          {...(objLengthSelected?.left > 0 && {
-            onClick: () => {
-              onUpdate({
-                from: "left",
-              });
-            },
-          })}
-        />
-        <Button
-          icon={<LeftOutlined />}
-          disabled={objLengthSelected?.right === 0}
-          {...(objLengthSelected?.right > 0 && {
-            onClick: () => {
-              onUpdate({
-                from: "right",
-              });
-            },
-          })}
-        />
-      </div>
+          const isAllTargetted =
+            objLengthSelected?.right === oriDatasRef?.current?.length;
 
-      <TransferComp
-        dataSource={filterDatasRight}
-        page={pageRight}
-        setPage={setPageRight}
-        selectedKeyRef={selectedKeyRightRef}
-        objLengthSelected={objLengthSelected}
-        setObjLengthSelected={setObjLengthSelected}
-        direction="right"
-        objSelectIdxRef={objSelectIdxRef}
-      />
-    </TransferWrapperStyled>
+          if (checked && !isAllTargetted) {
+            console.log("ss", {
+              rightLength: objLengthSelected?.right,
+              oriDa: oriDatasRef?.current?.length,
+            });
+            const allOriDatas = oriDatasRef.current?.map((data) => data?.key);
+
+            selectedKeyLeftRef.current = new Set(allOriDatas);
+
+            onUpdate({ from: "left" });
+
+            setObjLengthSelected((prev) => ({
+              ...prev,
+              left: 0,
+              right: oriDatasRef?.current?.length,
+            }));
+          }
+        }}
+      >
+        All Employee
+      </Checkbox>
+
+      {!isAllEmp && (
+        <TransferWrapperStyled>
+          <TransferComp
+            dataSource={filterDatasRef.current}
+            page={pageLeft}
+            setPage={setPageLeft}
+            selectedKeyRef={selectedKeyLeftRef}
+            objLengthSelected={objLengthSelected}
+            setObjLengthSelected={setObjLengthSelected}
+            direction="left"
+            objSelectIdxRef={objSelectIdxRef}
+          />
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Button
+              icon={<RightOutlined />}
+              disabled={objLengthSelected?.left === 0}
+              {...(objLengthSelected?.left > 0 && {
+                onClick: () => {
+                  onUpdate({
+                    from: "left",
+                  });
+                },
+              })}
+            />
+            <Button
+              icon={<LeftOutlined />}
+              disabled={objLengthSelected?.right === 0}
+              {...(objLengthSelected?.right > 0 && {
+                onClick: () => {
+                  onUpdate({
+                    from: "right",
+                  });
+                },
+              })}
+            />
+          </div>
+
+          <TransferComp
+            dataSource={filterDatasRight}
+            page={pageRight}
+            setPage={setPageRight}
+            selectedKeyRef={selectedKeyRightRef}
+            objLengthSelected={objLengthSelected}
+            setObjLengthSelected={setObjLengthSelected}
+            direction="right"
+            objSelectIdxRef={objSelectIdxRef}
+          />
+        </TransferWrapperStyled>
+      )}
+    </>
   );
 };
 
