@@ -69,18 +69,6 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
     [filterDatas, objLengthSelected, filterDatasRight]
   );
 
-  const filterByPage = useCallback(
-    ({ direction, arrDatas }) => {
-      const page = direction === "left" ? pageLeft : pageRight;
-
-      const start = (page - 1) * 10;
-      const end = page * LIMIT;
-
-      return arrDatas?.slice(start, end);
-    },
-    [pageLeft, pageRight]
-  );
-
   const onFakeFetch = () => {
     return new Promise((resolve) => {
       // setTimeout(() => {
