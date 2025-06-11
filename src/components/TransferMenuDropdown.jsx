@@ -9,7 +9,7 @@ const TransferMenuDropdown_ = ({
   setObjLengthSelected,
   direction,
   dataSourceByDirection = [],
-  startIdxRef,
+  objSelectIdxRef,
 }) => {
   const titleDropdown = useMemo(() => {
     const selectedLength = objLengthSelected?.[direction];
@@ -39,7 +39,7 @@ const TransferMenuDropdown_ = ({
             });
           }
 
-          startIdxRef.current = -1;
+          objSelectIdxRef.current.start = -1;
 
           setObjLengthSelected((prev) => ({
             ...prev,
@@ -66,7 +66,7 @@ const TransferMenuDropdown_ = ({
             });
           }
 
-          startIdxRef.current = -1;
+          objSelectIdxRef.current.start = -1;
 
           setObjLengthSelected((prev) => ({
             ...prev,

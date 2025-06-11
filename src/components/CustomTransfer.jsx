@@ -3,9 +3,12 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import TransferComp from "./TransferComp";
 import TransferWrapperStyled from "../styled/TransferWrapper.styled";
+import { generateSelectKey } from "../helpers";
 
 const mockData = Array.from({
   length: 1000000,
+  // length: 300000,
+  // length: 50000,
   // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
@@ -13,7 +16,11 @@ const mockData = Array.from({
   data: `content${i}`,
 }));
 
-const CustomTransfer_ = ({ name, selectValue = "key" }) => {
+const CustomTransfer_ = ({
+  name,
+  selectValue = "key",
+  selectLabel = "data",
+}) => {
   const formInstance = Form.useFormInstance();
 
   const [filterDatas, setFilterDatas] = useState([]);
@@ -29,14 +36,20 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
   const targetKeysRef = useRef([]);
   const selectedKeyLeftRef = useRef(new Set([]));
   const selectedKeyRightRef = useRef(new Set([]));
+  const objSelectIdxRef = useRef({
+    start: -1,
+    end: -1,
+  });
 
   const filterDatasRight = useMemo(() => {
     const targetKeysRefSet = new Set(targetKeysRef?.current);
 
     if (targetKeysRef?.current?.length > 10000) {
-      return oriDatasRef.current?.filter((data) =>
+      const datasRight = oriDatasRef.current?.filter((data) =>
         targetKeysRefSet?.has(data?.key)
       );
+
+      return generateSelectKey(datasRight);
     } else {
       const datasRight = [];
 
@@ -48,7 +61,7 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
         datasRight?.push(objOriData);
       });
 
-      return datasRight;
+      return generateSelectKey(datasRight);
     }
   }, [oriDatasRef.current, targetKeysRef?.current, filterDatas]);
 
@@ -66,11 +79,13 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
     try {
       const data = await onFakeFetch();
 
-      const dataResult = data?.map((item, i) => ({
-        ...item,
-        // key: i?.toString(),
-        key: i,
-      }));
+      const dataResult = generateSelectKey(
+        data?.map((item, i) => ({
+          ...item,
+          data: item?.[selectLabel],
+          key: i,
+        }))
+      );
 
       oriDatasRef.current = dataResult;
 
@@ -117,15 +132,15 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
 
       targetKeysRef.current = newTargetKeys;
 
-      setFilterDatas(updtdFilterDatas);
+      setFilterDatas(generateSelectKey(updtdFilterDatas));
+
+      setObjLengthSelected((prev) => ({
+        ...prev,
+        left: 0,
+      }));
 
       setTimeout(() => {
         selectedKeyLeftRef?.current?.clear();
-
-        setObjLengthSelected((prev) => ({
-          ...prev,
-          left: 0,
-        }));
       }, 0);
     } else {
       const targetKeysRefSet = new Set(targetKeysRef?.current);
@@ -140,17 +155,22 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
 
       targetKeysRef.current = Array.from(targetKeysRefSet);
 
-      setFilterDatas([...newFilterDatas, ...filterDatas]);
+      setFilterDatas(generateSelectKey([...newFilterDatas, ...filterDatas]));
+
+      setObjLengthSelected((prev) => ({
+        ...prev,
+        right: 0,
+      }));
 
       setTimeout(() => {
         selectedKeyRightRef?.current?.clear();
-
-        setObjLengthSelected((prev) => ({
-          ...prev,
-          right: 0,
-        }));
       }, 0);
     }
+
+    objSelectIdxRef.current = {
+      start: -1,
+      end: -1,
+    };
   };
 
   useEffect(() => {
@@ -179,7 +199,7 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
         objLengthSelected={objLengthSelected}
         setObjLengthSelected={setObjLengthSelected}
         direction="left"
-        targetKeysRef={targetKeysRef}
+        objSelectIdxRef={objSelectIdxRef}
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -215,7 +235,7 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
         objLengthSelected={objLengthSelected}
         setObjLengthSelected={setObjLengthSelected}
         direction="right"
-        targetKeysRef={targetKeysRef}
+        objSelectIdxRef={objSelectIdxRef}
       />
     </TransferWrapperStyled>
   );

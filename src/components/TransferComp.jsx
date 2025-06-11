@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef } from "react";
+import { memo, useMemo } from "react";
 import Footer from "../Footer";
 import { Checkbox, Table, Transfer, Typography } from "antd";
 import TransferMenuDropdown from "./TransferMenuDropdown";
@@ -14,9 +14,10 @@ const TransferComp_ = ({
   objLengthSelected,
   setObjLengthSelected,
   direction,
+  objSelectIdxRef,
 }) => {
-  const startIdxRef = useRef(-1);
-  const endIdxRef = useRef(-1);
+  // const startIdxRef = useRef(-1);
+  // const endIdxRef = useRef(-1);
 
   const filterDatas = useMemo(() => {
     const start = (page - 1) * 10;
@@ -25,22 +26,25 @@ const TransferComp_ = ({
     return dataSource?.slice(start, end);
   }, [page, dataSource]);
 
-  const onMultipleSelect = (key) => {
-    if (key < startIdxRef?.current) {
-      endIdxRef.current = startIdxRef?.current;
+  const onMultipleSelect = ({ selectKey }) => {
+    if (selectKey < objSelectIdxRef?.current?.start) {
+      objSelectIdxRef.current.end = objSelectIdxRef?.current?.start;
 
-      startIdxRef.current = key;
+      objSelectIdxRef.current.start = selectKey;
     } else {
-      endIdxRef.current = key;
+      objSelectIdxRef.current.end = selectKey;
     }
 
     const selectedDatas = dataSource?.filter(
       (data) =>
-        startIdxRef?.current <= data?.key && endIdxRef?.current >= data?.key
+        objSelectIdxRef?.current?.start <= data?.selectKey &&
+        objSelectIdxRef.current.end >= data?.selectKey
     );
 
     if (
-      selectedDatas?.every((data) => selectedKeyRef?.current?.has(data?.key))
+      selectedDatas?.every((data) =>
+        selectedKeyRef?.current?.has(data?.selectKey)
+      )
     ) {
       selectedDatas?.forEach((data) => {
         selectedKeyRef?.current.delete(data?.key);
@@ -51,17 +55,18 @@ const TransferComp_ = ({
       });
     }
 
-    startIdxRef.current = key;
+    objSelectIdxRef.current.start = selectKey;
   };
 
-  const onOnceSelect = (key) => {
+  const onOnceSelect = ({ key, selectKey }) => {
     if (selectedKeyRef?.current?.has(key)) {
       selectedKeyRef?.current.delete(key);
-      startIdxRef.current = -1;
+
+      objSelectIdxRef.current.start = -1;
     } else {
       selectedKeyRef?.current.add(key);
 
-      startIdxRef.current = key;
+      objSelectIdxRef.current.start = selectKey;
     }
   };
 
@@ -71,7 +76,7 @@ const TransferComp_ = ({
       filterOption={(inputValue, option) =>
         option.data.indexOf(inputValue) > -1
       }
-      dataSource={filterDatas}
+      // dataSource={filterDatas}
       showSelectAll={false}
       selectAllLabels={[
         <TransferMenuDropdown
@@ -81,7 +86,8 @@ const TransferComp_ = ({
           objLengthSelected={objLengthSelected}
           setObjLengthSelected={setObjLengthSelected}
           direction={direction}
-          startIdxRef={startIdxRef}
+          objSelectIdxRef={objSelectIdxRef}
+          key="transfer-dropdowns"
         />,
       ]}
       footer={() => (
@@ -92,10 +98,11 @@ const TransferComp_ = ({
         />
       )}
     >
-      {({ filteredItems }) => {
+      {() => {
         return (
           <Table
-            dataSource={filteredItems}
+            // dataSource={filteredItems}
+            dataSource={filterDatas}
             showHeader={false}
             columns={[
               {
@@ -122,13 +129,13 @@ const TransferComp_ = ({
                 },
               },
             ]}
-            onRow={({ key }) => {
+            onRow={({ key, selectKey }) => {
               return {
                 onClick: (e) => {
-                  if (e?.shiftKey && startIdxRef?.current !== -1) {
-                    onMultipleSelect(key);
+                  if (e?.shiftKey && objSelectIdxRef?.current?.start !== -1) {
+                    onMultipleSelect({ selectKey });
                   } else {
-                    onOnceSelect(key);
+                    onOnceSelect({ key, selectKey });
                   }
 
                   setObjLengthSelected((prev) => ({
