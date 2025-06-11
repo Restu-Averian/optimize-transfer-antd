@@ -3,37 +3,37 @@ import { Dropdown, Menu, Space } from "antd";
 import { memo } from "react";
 
 const TransferMenuDropdown_ = ({
-  setTriggerRender,
   selectedKeyRef,
-  oriDatasRef,
   dataSource,
   titleDropdown,
   setObjLengthSelected,
   direction,
+  dataSourceByDirection,
+  startIdxRef,
 }) => {
   const menu = (
     <Menu>
       <Menu.Item
         key="select-all"
         onClick={() => {
-          const isCheckedAll = oriDatasRef?.current?.every((data) =>
+          const isCheckedAll = dataSourceByDirection?.every((data) =>
             selectedKeyRef?.current?.has(data?.key)
           );
 
           if (isCheckedAll) {
             selectedKeyRef?.current.clear();
           } else {
-            oriDatasRef.current?.forEach((d) => {
+            dataSourceByDirection?.forEach((d) => {
               selectedKeyRef?.current.add(d.key);
             });
           }
+
+          startIdxRef.current = -1;
 
           setObjLengthSelected((prev) => ({
             ...prev,
             [direction]: selectedKeyRef?.current?.size,
           }));
-
-          setTriggerRender((prev) => prev + 1);
         }}
       >
         Select All Data
@@ -55,12 +55,12 @@ const TransferMenuDropdown_ = ({
             });
           }
 
+          startIdxRef.current = -1;
+
           setObjLengthSelected((prev) => ({
             ...prev,
             [direction]: selectedKeyRef?.current?.size,
           }));
-
-          setTriggerRender((prev) => prev + 1);
         }}
       >
         Select Current Page

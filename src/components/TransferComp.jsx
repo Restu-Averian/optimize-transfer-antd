@@ -1,13 +1,13 @@
-import { memo, useState } from "react";
+import { memo, useMemo, useRef } from "react";
 import Footer from "../Footer";
 import { Checkbox, Table, Transfer, Typography } from "antd";
 import TransferMenuDropdown from "./TransferMenuDropdown";
 
 const { Text } = Typography;
+const LIMIT = 10;
 
 const TransferComp_ = ({
   dataSource,
-  oriDatasRef,
   selectedKeyRef,
   datasLength,
   page,
@@ -16,7 +16,55 @@ const TransferComp_ = ({
   setObjLengthSelected,
   direction,
 }) => {
-  const [triggerRender, setTriggerRender] = useState(0);
+  const startIdxRef = useRef(-1);
+  const endIdxRef = useRef(-1);
+
+  const filterDatas = useMemo(() => {
+    const start = (page - 1) * 10;
+    const end = page * LIMIT;
+
+    return dataSource?.slice(start, end);
+  }, [page, dataSource]);
+
+  const onMultipleSelect = (key) => {
+    if (key < startIdxRef?.current) {
+      endIdxRef.current = startIdxRef?.current;
+
+      startIdxRef.current = key;
+    } else {
+      endIdxRef.current = key;
+    }
+
+    const selectedDatas = dataSource?.filter(
+      (data) =>
+        startIdxRef?.current <= data?.key && endIdxRef?.current >= data?.key
+    );
+
+    if (
+      selectedDatas?.every((data) => selectedKeyRef?.current?.has(data?.key))
+    ) {
+      selectedDatas?.forEach((data) => {
+        selectedKeyRef?.current.delete(data?.key);
+      });
+    } else {
+      selectedDatas?.forEach((data) => {
+        selectedKeyRef?.current.add(data?.key);
+      });
+    }
+
+    startIdxRef.current = key;
+  };
+
+  const onOnceSelect = (key) => {
+    if (selectedKeyRef?.current?.has(key)) {
+      selectedKeyRef?.current.delete(key);
+      startIdxRef.current = -1;
+    } else {
+      selectedKeyRef?.current.add(key);
+
+      startIdxRef.current = key;
+    }
+  };
 
   return (
     <Transfer
@@ -24,17 +72,17 @@ const TransferComp_ = ({
       filterOption={(inputValue, option) =>
         option.data.indexOf(inputValue) > -1
       }
-      dataSource={dataSource}
+      dataSource={filterDatas}
       showSelectAll={false}
       selectAllLabels={[
         <TransferMenuDropdown
           titleDropdown={titleDropdown}
-          dataSource={dataSource}
-          oriDatasRef={oriDatasRef}
+          dataSource={filterDatas}
+          dataSourceByDirection={dataSource}
           selectedKeyRef={selectedKeyRef}
-          setTriggerRender={setTriggerRender}
           setObjLengthSelected={setObjLengthSelected}
           direction={direction}
+          startIdxRef={startIdxRef}
         />,
       ]}
       footer={() => (
@@ -44,7 +92,6 @@ const TransferComp_ = ({
       {({ filteredItems }) => {
         return (
           <Table
-            key={triggerRender}
             dataSource={filteredItems}
             showHeader={false}
             columns={[
@@ -74,19 +121,17 @@ const TransferComp_ = ({
             ]}
             onRow={({ key }) => {
               return {
-                onClick: () => {
-                  if (selectedKeyRef?.current?.has(key)) {
-                    selectedKeyRef?.current.delete(key);
+                onClick: (e) => {
+                  if (e?.shiftKey && startIdxRef?.current !== -1) {
+                    onMultipleSelect(key);
                   } else {
-                    selectedKeyRef?.current.add(key);
+                    onOnceSelect(key);
                   }
 
                   setObjLengthSelected((prev) => ({
                     ...prev,
                     [direction]: selectedKeyRef.current.size,
                   }));
-
-                  setTriggerRender((prev) => prev + 1);
                 },
               };
             }}

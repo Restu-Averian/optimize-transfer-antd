@@ -6,10 +6,11 @@ import TransferWrapperStyled from "../styled/TransferWrapper.styled";
 
 const mockData = Array.from({
   length: 1000000,
-  //   length: 30,
+  // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
-  data: `content${i + 1}`,
+  // data: `content${i + 1}`,
+  data: `content${i}`,
 }));
 
 const LIMIT = 10;
@@ -96,7 +97,8 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
 
       const dataResult = data?.map((item, i) => ({
         ...item,
-        key: i?.toString(),
+        // key: i?.toString(),
+        key: i,
       }));
 
       oriDatasRef.current = dataResult;
@@ -199,12 +201,12 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       </Form.Item>
 
       <TransferComp
-        dataSource={filterByPage({
-          arrDatas: filterDatas,
-          direction: "left",
-        })}
+        // dataSource={filterByPage({
+        //   arrDatas: filterDatas,
+        //   direction: "left",
+        // })}
+        dataSource={filterDatas}
         datasLength={filterDatas?.length}
-        oriDatasRef={oriDatasRef}
         page={pageLeft}
         setPage={setPageLeft}
         selectedKeyRef={selectedKeyLeftRef}
@@ -239,12 +241,12 @@ const CustomTransfer_ = ({ name, selectValue = "key" }) => {
       </div>
 
       <TransferComp
-        dataSource={filterByPage({
-          arrDatas: filterDatasRight,
-          direction: "right",
-        })}
+        // dataSource={filterByPage({
+        //   arrDatas: filterDatasRight,
+        //   direction: "right",
+        // })}
+        dataSource={filterDatasRight}
         datasLength={filterDatasRight?.length}
-        oriDatasRef={oriDatasRef}
         page={pageRight}
         setPage={setPageRight}
         selectedKeyRef={selectedKeyRightRef}
