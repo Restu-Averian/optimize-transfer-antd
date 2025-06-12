@@ -258,7 +258,7 @@ const CustomTransfer_ = ({
   }, [filterDatasRight]);
 
   return (
-    <>
+    <Form.Item label="Restu" name={name} rules={[{ required: true }]}>
       <Checkbox
         onChange={({ target: { checked } }) => {
           setAllEmp(checked);
@@ -286,140 +286,136 @@ const CustomTransfer_ = ({
       </Checkbox>
 
       {isAllEmp ? null : (
-        <Form.Item label="Restu" name={name} rules={[{ required: true }]}>
-          <Transfer
-            selectedKeys={[
-              ...Array.from(selectedKeyLeftRef.current).slice(0, 1),
-              ...Array.from(selectedKeyRightRef.current).slice(0, 1),
-            ]}
-            targetKeys={targetKeysRef.current}
-            showSearch
-            filterOption={(inputValue, option) =>
-              option.data.indexOf(inputValue) > -1
-            }
-            showSelectAll={false}
-            selectAllLabels={[
-              <TransferMenuDropdown
-                dataSourceByPage={onFilterDatas({ direction: "left" })}
-                dataSourceByDirection={filterDatasRef?.current}
-                selectedKeyRef={selectedKeyLeftRef}
-                objLengthSelected={objLengthSelected}
-                setObjLengthSelected={setObjLengthSelected}
-                direction={"left"}
-                objSelectIdxRef={objSelectIdxRef}
-                key="transfer-dropdown-left"
-                page={pageLeft}
-              />,
-              <TransferMenuDropdown
-                dataSourceByPage={onFilterDatas({ direction: "right" })}
-                dataSourceByDirection={filterDatasRight}
-                selectedKeyRef={selectedKeyRightRef}
-                objLengthSelected={objLengthSelected}
-                setObjLengthSelected={setObjLengthSelected}
-                direction={"right"}
-                objSelectIdxRef={objSelectIdxRef}
-                key="transfer-dropdown-right"
-                page={pageRight}
-              />,
-            ]}
-            footer={(_, { direction }) => {
-              if (direction === "left") {
-                return (
-                  <Footer
-                    page={pageLeft}
-                    setPage={setPageLeft}
-                    datasLength={filterDatasRef?.current?.length}
-                  />
-                );
-              }
+        <Transfer
+          selectedKeys={[
+            ...Array.from(selectedKeyLeftRef.current).slice(0, 1),
+            ...Array.from(selectedKeyRightRef.current).slice(0, 1),
+          ]}
+          targetKeys={targetKeysRef.current}
+          showSearch
+          filterOption={(inputValue, option) =>
+            option.data.indexOf(inputValue) > -1
+          }
+          showSelectAll={false}
+          selectAllLabels={[
+            <TransferMenuDropdown
+              dataSourceByPage={onFilterDatas({ direction: "left" })}
+              dataSourceByDirection={filterDatasRef?.current}
+              selectedKeyRef={selectedKeyLeftRef}
+              objLengthSelected={objLengthSelected}
+              setObjLengthSelected={setObjLengthSelected}
+              direction={"left"}
+              objSelectIdxRef={objSelectIdxRef}
+              key="transfer-dropdown-left"
+              page={pageLeft}
+            />,
+            <TransferMenuDropdown
+              dataSourceByPage={onFilterDatas({ direction: "right" })}
+              dataSourceByDirection={filterDatasRight}
+              selectedKeyRef={selectedKeyRightRef}
+              objLengthSelected={objLengthSelected}
+              setObjLengthSelected={setObjLengthSelected}
+              direction={"right"}
+              objSelectIdxRef={objSelectIdxRef}
+              key="transfer-dropdown-right"
+              page={pageRight}
+            />,
+          ]}
+          footer={(_, { direction }) => {
+            if (direction === "left") {
               return (
                 <Footer
-                  page={pageRight}
-                  setPage={setPageRight}
-                  datasLength={filterDatasRight?.length}
+                  page={pageLeft}
+                  setPage={setPageLeft}
+                  datasLength={filterDatasRef?.current?.length}
                 />
               );
-            }}
-            onChange={(_, destDirection) => {
-              onUpdate({ from: destDirection === "right" ? "left" : "right" });
-            }}
-          >
-            {({ direction }) => {
-              const dataSource =
-                direction === "left"
-                  ? filterDatasRef.current
-                  : filterDatasRight;
+            }
+            return (
+              <Footer
+                page={pageRight}
+                setPage={setPageRight}
+                datasLength={filterDatasRight?.length}
+              />
+            );
+          }}
+          onChange={(_, destDirection) => {
+            onUpdate({ from: destDirection === "right" ? "left" : "right" });
+          }}
+        >
+          {({ direction }) => {
+            const dataSource =
+              direction === "left" ? filterDatasRef.current : filterDatasRight;
 
-              const selectedKeyRef =
-                direction === "left" ? selectedKeyLeftRef : selectedKeyRightRef;
+            const selectedKeyRef =
+              direction === "left" ? selectedKeyLeftRef : selectedKeyRightRef;
 
-              return (
-                <Table
-                  // dataSource={dataSource}
-                  dataSource={onFilterDatas({ direction })}
-                  showHeader={false}
-                  columns={[
-                    {
-                      key: "selected",
-                      dataIndex: "selected",
-                      render: (_, record) => {
-                        return (
-                          <Checkbox
-                            checked={selectedKeyRef?.current?.has(record?.key)}
-                          />
-                        );
-                      },
-                      width: 5,
+            return (
+              <Table
+                // dataSource={dataSource}
+                dataSource={onFilterDatas({ direction })}
+                showHeader={false}
+                columns={[
+                  {
+                    key: "selected",
+                    dataIndex: "selected",
+                    render: (_, record) => {
+                      return (
+                        <Checkbox
+                          checked={selectedKeyRef?.current?.has(record?.key)}
+                        />
+                      );
                     },
-                    {
-                      key: "data",
-                      dataIndex: "data",
-                      render: (_, record) => {
-                        return (
-                          <div>
-                            <Text>{record?.data}</Text>
-                          </div>
-                        );
-                      },
+                    width: 5,
+                  },
+                  {
+                    key: "data",
+                    dataIndex: "data",
+                    render: (_, record) => {
+                      return (
+                        <div>
+                          <Text>{record?.data}</Text>
+                        </div>
+                      );
                     },
-                  ]}
-                  onRow={({ key, selectKey }) => {
-                    return {
-                      onClick: (e) => {
-                        if (
-                          e?.shiftKey &&
-                          objSelectIdxRef?.current?.[direction]?.start !== -1
-                        ) {
-                          onMultipleSelect({
-                            selectKey,
-                            dataSource,
-                            selectedKeyRef,
-                            direction,
-                          });
-                        } else {
-                          onOnceSelect({
-                            key,
-                            selectKey,
-                            selectedKeyRef,
-                            direction,
-                          });
-                        }
+                  },
+                ]}
+                onRow={({ key, selectKey }) => {
+                  return {
+                    onClick: (e) => {
+                      if (
+                        e?.shiftKey &&
+                        objSelectIdxRef?.current?.[direction]?.start !== -1
+                      ) {
+                        onMultipleSelect({
+                          selectKey,
+                          dataSource,
+                          selectedKeyRef,
+                          direction,
+                        });
+                      } else {
+                        onOnceSelect({
+                          key,
+                          selectKey,
+                          selectedKeyRef,
+                          direction,
+                        });
+                      }
 
-                        setObjLengthSelected((prev) => ({
-                          ...prev,
-                          [direction]: selectedKeyRef?.current?.size,
-                        }));
-                      },
-                    };
-                  }}
-                  pagination={false}
-                />
-              );
-            }}
-          </Transfer>
-        </Form.Item>
+                      setObjLengthSelected((prev) => ({
+                        ...prev,
+                        [direction]: selectedKeyRef?.current?.size,
+                      }));
+                    },
+                  };
+                }}
+                pagination={false}
+              />
+            );
+          }}
+        </Transfer>
       )}
-    </>
+    </Form.Item>
   );
 };
 
