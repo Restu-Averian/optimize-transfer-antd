@@ -16,7 +16,9 @@ const App = () => {
 
       <Button
         onClick={() => {
-          console.log("f ; ", form?.getFieldsValue(true));
+          form?.validateFields()?.then(() => {
+            console.log("f ; ", form?.getFieldsValue(true));
+          });
         }}
       >
         Check datas

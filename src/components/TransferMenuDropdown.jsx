@@ -1,6 +1,6 @@
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, Space } from "antd";
-import { memo, useMemo } from "react";
+import { Fragment, memo, useMemo } from "react";
 
 const TransferMenuDropdown_ = ({
   selectedKeyRef,
@@ -10,6 +10,7 @@ const TransferMenuDropdown_ = ({
   direction,
   dataSourceByDirection = [],
   objSelectIdxRef,
+  page,
 }) => {
   const titleDropdown = useMemo(() => {
     const selectedLength = objLengthSelected?.[direction];
@@ -22,15 +23,23 @@ const TransferMenuDropdown_ = ({
     return `${dataSourceByDirection?.length} ${textItem}`;
   }, [dataSourceByDirection, objLengthSelected, direction]);
 
+  const isCheckedAllCurrent = useMemo(() => {
+    return dataSourceByPage?.every((data) =>
+      selectedKeyRef?.current?.has(data?.key)
+    );
+  }, [dataSourceByPage, selectedKeyRef, objLengthSelected, page]);
+
+  const isCheckedAll = useMemo(() => {
+    return dataSourceByDirection?.every((data) =>
+      selectedKeyRef?.current?.has(data?.key)
+    );
+  }, [dataSourceByDirection, selectedKeyRef, objLengthSelected, page]);
+
   const menu = (
     <Menu>
       <Menu.Item
         key="select-all"
         onClick={() => {
-          const isCheckedAll = dataSourceByDirection?.every((data) =>
-            selectedKeyRef?.current?.has(data?.key)
-          );
-
           if (isCheckedAll) {
             selectedKeyRef?.current.clear();
           } else {
@@ -39,7 +48,7 @@ const TransferMenuDropdown_ = ({
             });
           }
 
-          objSelectIdxRef.current.start = -1;
+          objSelectIdxRef.current[direction].start = -1;
 
           setObjLengthSelected((prev) => ({
             ...prev,
@@ -47,15 +56,11 @@ const TransferMenuDropdown_ = ({
           }));
         }}
       >
-        Select All Data
+        {isCheckedAll ? "Deselect All Data" : "Select All Data"}
       </Menu.Item>
       <Menu.Item
         key="select-current"
         onClick={() => {
-          const isCheckedAllCurrent = dataSourceByPage?.every((data) =>
-            selectedKeyRef?.current?.has(data?.key)
-          );
-
           if (isCheckedAllCurrent) {
             dataSourceByPage?.forEach((d) => {
               selectedKeyRef?.current.delete(d.key);
@@ -66,7 +71,7 @@ const TransferMenuDropdown_ = ({
             });
           }
 
-          objSelectIdxRef.current.start = -1;
+          objSelectIdxRef.current[direction].start = -1;
 
           setObjLengthSelected((prev) => ({
             ...prev,
@@ -74,16 +79,26 @@ const TransferMenuDropdown_ = ({
           }));
         }}
       >
-        Select Current Page
+        {isCheckedAllCurrent ? "Deselect Current Page" : " Select Current Page"}
       </Menu.Item>
     </Menu>
   );
   return (
-    <Dropdown overlay={menu} trigger={["click"]}>
+    <Dropdown
+      {...(dataSourceByPage?.length > 0
+        ? {
+            overlay: menu,
+          }
+        : {
+            overlay: <div />,
+          })}
+      trigger={["click"]}
+    >
       <a onClick={(e) => e?.preventDefault()}>
         <Space>
           {titleDropdown}
-          <DownOutlined />
+
+          {dataSourceByPage?.length > 0 ? <DownOutlined /> : null}
         </Space>
       </a>
     </Dropdown>

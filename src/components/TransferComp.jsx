@@ -27,18 +27,19 @@ const TransferComp_ = ({
   }, [page, dataSource]);
 
   const onMultipleSelect = ({ selectKey }) => {
-    if (selectKey < objSelectIdxRef?.current?.start) {
-      objSelectIdxRef.current.end = objSelectIdxRef?.current?.start;
+    if (selectKey < objSelectIdxRef?.current?.[direction]?.start) {
+      objSelectIdxRef.current[direction].end =
+        objSelectIdxRef?.current?.[direction]?.start;
 
-      objSelectIdxRef.current.start = selectKey;
+      objSelectIdxRef.current[direction].start = selectKey;
     } else {
-      objSelectIdxRef.current.end = selectKey;
+      objSelectIdxRef.current[direction].end = selectKey;
     }
 
     const selectedDatas = dataSource?.filter(
       (data) =>
-        objSelectIdxRef?.current?.start <= data?.selectKey &&
-        objSelectIdxRef.current.end >= data?.selectKey
+        objSelectIdxRef?.current?.[direction]?.start <= data?.selectKey &&
+        objSelectIdxRef?.current?.[direction]?.end >= data?.selectKey
     );
 
     if (
@@ -55,18 +56,18 @@ const TransferComp_ = ({
       });
     }
 
-    objSelectIdxRef.current.start = selectKey;
+    objSelectIdxRef.current[direction].start = selectKey;
   };
 
   const onOnceSelect = ({ key, selectKey }) => {
     if (selectedKeyRef?.current?.has(key)) {
       selectedKeyRef?.current.delete(key);
 
-      objSelectIdxRef.current.start = -1;
+      objSelectIdxRef.current[direction].start = -1;
     } else {
       selectedKeyRef?.current.add(key);
 
-      objSelectIdxRef.current.start = selectKey;
+      objSelectIdxRef.current[direction].start = selectKey;
     }
   };
 
@@ -132,7 +133,10 @@ const TransferComp_ = ({
             onRow={({ key, selectKey }) => {
               return {
                 onClick: (e) => {
-                  if (e?.shiftKey && objSelectIdxRef?.current?.start !== -1) {
+                  if (
+                    e?.shiftKey &&
+                    objSelectIdxRef?.current?.[direction]?.start !== -1
+                  ) {
                     onMultipleSelect({ selectKey });
                   } else {
                     onOnceSelect({ key, selectKey });
