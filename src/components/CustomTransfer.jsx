@@ -2,7 +2,7 @@ import { Checkbox, Form, Table, Transfer, Typography } from "antd";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generateSelectKey } from "../helpers";
 import TransferMenuDropdown from "./TransferMenuDropdown";
-import Footer from "../Footer";
+import TransferFooter from "./TransferFooter";
 
 const mockData = Array.from({
   length: 1000000,
@@ -324,7 +324,7 @@ const CustomTransfer_ = ({
           footer={(_, { direction }) => {
             if (direction === "left") {
               return (
-                <Footer
+                <TransferFooter
                   page={pageLeft}
                   setPage={setPageLeft}
                   datasLength={filterDatasRef?.current?.length}
@@ -332,7 +332,7 @@ const CustomTransfer_ = ({
               );
             }
             return (
-              <Footer
+              <TransferFooter
                 page={pageRight}
                 setPage={setPageRight}
                 datasLength={filterDatasRight?.length}

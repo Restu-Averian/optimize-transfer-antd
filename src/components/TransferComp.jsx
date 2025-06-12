@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import Footer from "../Footer";
+import Footer from "./TransferFooter";
 import { Checkbox, Table, Transfer, Typography } from "antd";
 import TransferMenuDropdown from "./TransferMenuDropdown";
 
