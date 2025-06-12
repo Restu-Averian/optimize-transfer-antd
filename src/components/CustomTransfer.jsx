@@ -264,7 +264,7 @@ const CustomTransfer_ = ({
           setAllEmp(checked);
 
           const isAllTargetted =
-            objLengthSelected?.right === oriDatasRef?.current?.length;
+            targetKeysRef?.current?.length === oriDatasRef?.current?.length;
 
           if (checked && !isAllTargetted) {
             const allKeyOriDatas = oriDatasRef.current?.map(
