@@ -6,10 +6,10 @@ import TransferFooter from "./TransferFooter";
 import { LIMIT_PAGE, NUM_SEARCH_USE_LOADING } from "../constant";
 
 const mockData = Array.from({
-  length: 1000000,
+  // length: 1000000,
   // length: 300000,
   // length: 50000,
-  // length: 48000,
+  length: 48000,
   // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
@@ -442,6 +442,7 @@ const CustomTransfer_ = ({
           onChange={(_, destDirection) => {
             onUpdate({ from: destDirection === "right" ? "left" : "right" });
           }}
+          listStyle={{ minWidth: 300, width: 300, maxWidth: 300, height: 480 }}
         >
           {({ direction }) => {
             const selectedKeyRef =
@@ -457,6 +458,7 @@ const CustomTransfer_ = ({
               <Table
                 dataSource={dataSource}
                 showHeader={false}
+                size="small"
                 columns={[
                   {
                     key: "selected",
@@ -490,6 +492,14 @@ const CustomTransfer_ = ({
                 ]}
                 onRow={({ key, selectKey }) => {
                   return {
+                    onDoubleClick: () => {
+                      onUpdate({ from: direction });
+
+                      setObjLengthSelected((prev) => ({
+                        ...prev,
+                        [direction]: selectedKeyRef?.current?.size,
+                      }));
+                    },
                     onClick: (e) => {
                       if (
                         e?.shiftKey &&
