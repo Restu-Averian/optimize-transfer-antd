@@ -6,10 +6,10 @@ import TransferFooter from "./TransferFooter";
 import { LIMIT_PAGE, NUM_SEARCH_USE_LOADING } from "../constant";
 
 const mockData = Array.from({
-  // length: 1000000,
+  length: 1000000,
   // length: 300000,
   // length: 50000,
-  length: 48000,
+  // length: 48000,
   // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
@@ -137,7 +137,8 @@ const CustomTransfer_ = ({
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(mockData);
-      }, 2000);
+        // }, 2000);
+      }, 1000);
     });
   };
 
