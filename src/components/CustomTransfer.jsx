@@ -1,19 +1,37 @@
 import { Checkbox, Form, Table, Transfer, Typography } from "antd";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { generateSelectKey } from "../helpers";
+import { generateSelectKey, onMultipleSelect, onOnceSelect } from "../helpers";
 import TransferMenuDropdown from "./TransferMenuDropdown";
 import TransferFooter from "./TransferFooter";
 
 const mockData = Array.from({
-  length: 1000000,
-  // length: 300000,
+  // length: 1000000,
+  length: 300000,
   // length: 50000,
   // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
   // data: `content${i + 1}`,
   data: `content${i}`,
+  description: `descriptioncontent${i}`,
+  aaaaa: `descriptioncontent${i}`,
+  bbbbb: `bbbbb${i}`,
+  ccccc: `ccccc${i}`,
+  ddddd: `ddd${i}`,
+  eeeee: `eeee${i}`,
+  fffff: `ffff${i}`,
+  ggggg: `gggg${i}`,
+  hhhhh: `hhhh${i}`,
+  iiiii: `iiii${i}`,
+  jjjjj: `jjjj${i}`,
+  kkkkk: `kkkk${i}`,
+  lllll: `lllll${i}`,
+  mmmmm: `mmmm${i}`,
+  nnnnn: `nnnnn${i}`,
+  ooooo: `oooooo${i}`,
 }));
+
+console.log("mockData : ", mockData);
 
 const { Text } = Typography;
 
@@ -85,7 +103,8 @@ const CustomTransfer_ = ({
 
       const dataResult = generateSelectKey(
         data?.map((item, i) => ({
-          ...item,
+          // ...item,
+          [selectValue]: item?.[selectValue],
           data: item?.[selectLabel],
           key: i,
         }))
@@ -195,59 +214,9 @@ const CustomTransfer_ = ({
     [pageLeft, pageRight, filterDatasRef?.current, filterDatasRight]
   );
 
-  const onMultipleSelect = ({
-    selectKey,
-    dataSource,
-    selectedKeyRef,
-    direction,
-  }) => {
-    if (selectKey < objSelectIdxRef?.current?.[direction]?.start) {
-      objSelectIdxRef.current[direction].end =
-        objSelectIdxRef?.current?.[direction]?.start;
-
-      objSelectIdxRef.current[direction].start = selectKey;
-    } else {
-      objSelectIdxRef.current[direction].end = selectKey;
-    }
-
-    const selectedDatas = dataSource?.filter(
-      (data) =>
-        objSelectIdxRef?.current?.[direction]?.start <= data?.selectKey &&
-        objSelectIdxRef?.current?.[direction]?.end >= data?.selectKey
-    );
-
-    if (
-      selectedDatas?.every((data) =>
-        selectedKeyRef?.current?.has(data?.selectKey)
-      )
-    ) {
-      selectedDatas?.forEach((data) => {
-        selectedKeyRef?.current.delete(data?.key);
-      });
-    } else {
-      selectedDatas?.forEach((data) => {
-        selectedKeyRef?.current.add(data?.key);
-      });
-    }
-
-    objSelectIdxRef.current[direction].start = -1;
-  };
-
-  const onOnceSelect = ({ key, selectKey, selectedKeyRef, direction }) => {
-    if (selectedKeyRef?.current?.has(key)) {
-      selectedKeyRef?.current.delete(key);
-
-      objSelectIdxRef.current[direction].start = -1;
-    } else {
-      selectedKeyRef?.current.add(key);
-
-      objSelectIdxRef.current[direction].start = selectKey;
-    }
-  };
-
   useEffect(() => {
     fetchDatasource();
-  }, []);
+  }, [selectLabel, selectValue]);
 
   useEffect(() => {
     if (isInit.current) {
@@ -293,9 +262,29 @@ const CustomTransfer_ = ({
           ]}
           targetKeys={targetKeysRef.current}
           showSearch
-          filterOption={(inputValue, option) =>
-            option.data.indexOf(inputValue) > -1
-          }
+          // onSearch={(direction, value) => {
+          //   if (direction === "left") {
+          //     const newFilterDatas = value==='' ?  filterDatasRef?.current?.filter(
+          //       (data) => data?.[selectLabel] === value
+          //     );
+
+          //     filterDatasRef.current = newFilterDatas;
+
+          //     setObjLengthSelected((prev) => ({
+          //       ...prev,
+          //       left: newFilterDatas?.length,
+          //     }));
+          //   } else {
+          //   }
+          //   console.log("dd L ", { direction, value });
+          // }}
+          // filterOption={(inputValue, option) => {
+          //   console.log("inop : ", {
+          //     inputValue,
+          //     option,
+          //   });
+          //   return option.data.indexOf(inputValue) > -1;
+          // }}
           showSelectAll={false}
           selectAllLabels={[
             <TransferMenuDropdown
@@ -392,6 +381,7 @@ const CustomTransfer_ = ({
                           dataSource,
                           selectedKeyRef,
                           direction,
+                          objSelectIdxRef,
                         });
                       } else {
                         onOnceSelect({
@@ -399,6 +389,7 @@ const CustomTransfer_ = ({
                           selectKey,
                           selectedKeyRef,
                           direction,
+                          objSelectIdxRef,
                         });
                       }
 
