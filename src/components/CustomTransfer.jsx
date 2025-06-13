@@ -1,13 +1,15 @@
-import { Checkbox, Form, Table, Transfer, Typography } from "antd";
+import { Checkbox, Form, Skeleton, Table, Transfer, Typography } from "antd";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generateSelectKey, onMultipleSelect, onOnceSelect } from "../helpers";
 import TransferMenuDropdown from "./TransferMenuDropdown";
 import TransferFooter from "./TransferFooter";
+import { LIMIT_PAGE, NUM_SEARCH_USE_LOADING } from "../constant";
 
 const mockData = Array.from({
   // length: 1000000,
-  length: 300000,
+  // length: 300000,
   // length: 50000,
+  length: 48000,
   // length: 30,
 }).map((_, i) => ({
   //   key: i.toString(),
@@ -33,6 +35,13 @@ const mockData = Array.from({
 
 const { Text } = Typography;
 
+const arrDatasLoading = Array.from({
+  length: 5,
+})?.map((_, idx) => ({
+  key: idx,
+  selectKey: idx,
+}));
+
 const CustomTransfer_ = ({
   name,
   selectValue = "key",
@@ -41,6 +50,8 @@ const CustomTransfer_ = ({
   const formInstance = Form.useFormInstance();
 
   const [isAllEmp, setAllEmp] = useState(false);
+  const [loadingLeft, setLoadingLeft] = useState(true);
+  const [loadingRight, setLoadingRight] = useState(true);
   const [pageLeft, setPageLeft] = useState(1);
   const [pageRight, setPageRight] = useState(1);
   const [searchLeftValue, setSearchLeftValue] = useState("");
@@ -52,6 +63,8 @@ const CustomTransfer_ = ({
 
   const isInit = useRef(false);
   const timeoutSearchRef = useRef(null);
+  const searchLeftValueRef = useRef("");
+  const searchRightValueRef = useRef("");
   const oriDatasRef = useRef([]);
   const filterDatasRef = useRef([]);
   const targetKeysRef = useRef([]);
@@ -122,7 +135,9 @@ const CustomTransfer_ = ({
 
   const onFakeFetch = () => {
     return new Promise((resolve) => {
-      resolve(mockData);
+      setTimeout(() => {
+        resolve(mockData);
+      }, 2000);
     });
   };
 
@@ -163,6 +178,9 @@ const CustomTransfer_ = ({
       console.log("er;  ", err);
     } finally {
       isInit.current = true;
+
+      setLoadingLeft(false);
+      setLoadingRight(false);
     }
   };
 
@@ -235,8 +253,8 @@ const CustomTransfer_ = ({
       const dataSource =
         direction === "left" ? filterDatasRef?.current : filterDatasRight;
 
-      const start = (page - 1) * 10;
-      const end = page * 10;
+      const start = (page - 1) * LIMIT_PAGE;
+      const end = page * LIMIT_PAGE;
 
       return dataSource?.slice(start, end);
     },
@@ -264,9 +282,17 @@ const CustomTransfer_ = ({
 
         filterDatasRef.current = newFilterDatas;
 
-        setSearchLeftValue(value);
+        if (oriDatasRef?.current?.length > NUM_SEARCH_USE_LOADING) {
+          searchLeftValueRef.current = value;
+        } else {
+          setSearchLeftValue(value);
+        }
       } else {
-        setSearchRightValue(value);
+        if (oriDatasRef?.current?.length > NUM_SEARCH_USE_LOADING) {
+          searchRightValueRef.current = value;
+        } else {
+          setSearchRightValue(value);
+        }
       }
     },
     [
@@ -274,6 +300,8 @@ const CustomTransfer_ = ({
       filterDatasRef?.current,
       oriDatasRef?.current,
       targetKeysRef?.current,
+      searchLeftValueRef?.current,
+      searchRightValue?.current,
       searchLeftValue,
       searchRightValue,
     ]
@@ -328,13 +356,25 @@ const CustomTransfer_ = ({
           targetKeys={targetKeysRef.current}
           showSearch
           onSearch={(direction, value) => {
-            if (oriDatasRef?.current?.length >= 50000) {
+            if (oriDatasRef?.current?.length >= NUM_SEARCH_USE_LOADING) {
+              if (direction === "left") {
+                setLoadingLeft(true);
+              } else {
+                setLoadingRight(true);
+              }
+
               clearTimeout(timeoutSearchRef?.current);
               timeoutSearchRef.current = setTimeout(() => {
                 onSearch({
                   direction,
                   value: value?.trim()?.toLowerCase(),
                 });
+
+                if (direction === "left") {
+                  setLoadingLeft(false);
+                } else {
+                  setLoadingRight(false);
+                }
               }, 250);
             } else {
               onSearch({
@@ -355,7 +395,11 @@ const CustomTransfer_ = ({
               objSelectIdxRef={objSelectIdxRef}
               key="transfer-dropdown-left"
               page={pageLeft}
-              searchValue={searchLeftValue}
+              searchValue={
+                oriDatasRef?.current?.length >= NUM_SEARCH_USE_LOADING
+                  ? searchLeftValueRef?.current
+                  : searchLeftValue
+              }
               selectLabel={selectLabel}
             />,
             <TransferMenuDropdown
@@ -368,7 +412,11 @@ const CustomTransfer_ = ({
               objSelectIdxRef={objSelectIdxRef}
               key="transfer-dropdown-right"
               page={pageRight}
-              searchValue={searchRightValue}
+              searchValue={
+                oriDatasRef?.current?.length >= NUM_SEARCH_USE_LOADING
+                  ? searchRightValueRef?.current
+                  : searchRightValue
+              }
               selectLabel={selectLabel}
             />,
           ]}
@@ -395,21 +443,27 @@ const CustomTransfer_ = ({
           }}
         >
           {({ direction }) => {
-            const dataSource =
-              direction === "left" ? filterDatasRef.current : filterDatasRight;
-
             const selectedKeyRef =
               direction === "left" ? selectedKeyLeftRef : selectedKeyRightRef;
 
+            const loading = direction === "left" ? loadingLeft : loadingRight;
+
+            const dataSource = loading
+              ? arrDatasLoading
+              : onFilterDatas({ direction });
+
             return (
               <Table
-                dataSource={onFilterDatas({ direction })}
+                dataSource={dataSource}
                 showHeader={false}
                 columns={[
                   {
                     key: "selected",
                     dataIndex: "selected",
                     render: (_, record) => {
+                      if (loading) {
+                        return <Skeleton.Avatar active shape="circle" />;
+                      }
                       return (
                         <Checkbox
                           checked={selectedKeyRef?.current?.has(record?.key)}
@@ -422,6 +476,9 @@ const CustomTransfer_ = ({
                     key: "data",
                     dataIndex: "data",
                     render: (_, record) => {
+                      if (loading) {
+                        return <Skeleton.Input active />;
+                      }
                       return (
                         <div>
                           <Text>{record?.data}</Text>
@@ -439,7 +496,10 @@ const CustomTransfer_ = ({
                       ) {
                         onMultipleSelect({
                           selectKey,
-                          dataSource,
+                          dataSource:
+                            direction === "left"
+                              ? filterDatasRef.current
+                              : filterDatasRight,
                           selectedKeyRef,
                           direction,
                           objSelectIdxRef,
