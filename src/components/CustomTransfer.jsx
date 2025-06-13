@@ -31,8 +31,6 @@ const mockData = Array.from({
   ooooo: `oooooo${i}`,
 }));
 
-console.log("mockData : ", mockData);
-
 const { Text } = Typography;
 
 const CustomTransfer_ = ({
@@ -42,15 +40,18 @@ const CustomTransfer_ = ({
 }) => {
   const formInstance = Form.useFormInstance();
 
+  const [isAllEmp, setAllEmp] = useState(false);
   const [pageLeft, setPageLeft] = useState(1);
   const [pageRight, setPageRight] = useState(1);
+  const [searchLeftValue, setSearchLeftValue] = useState("");
+  const [searchRightValue, setSearchRightValue] = useState("");
   const [objLengthSelected, setObjLengthSelected] = useState({
     left: 0,
     right: 0,
   });
-  const [isAllEmp, setAllEmp] = useState(false);
 
   const isInit = useRef(false);
+  const timeoutSearchRef = useRef(null);
   const oriDatasRef = useRef([]);
   const filterDatasRef = useRef([]);
   const targetKeysRef = useRef([]);
@@ -75,6 +76,17 @@ const CustomTransfer_ = ({
         targetKeysRefSet?.has(data?.key)
       );
 
+      if (searchRightValue?.trim() !== "") {
+        const datasRightBySearch = datasRight?.filter((data) =>
+          data?.[selectLabel]
+            ?.toString()
+            ?.toLowerCase()
+            ?.trim()
+            ?.includes(searchRightValue?.toLowerCase()?.trim())
+        );
+
+        return generateSelectKey(datasRightBySearch);
+      }
       return generateSelectKey(datasRight);
     } else {
       const datasRight = [];
@@ -87,9 +99,26 @@ const CustomTransfer_ = ({
         datasRight?.push(objOriData);
       });
 
+      if (searchRightValue?.trim() !== "") {
+        const datasRightBySearch = datasRight?.filter((data) =>
+          data?.[selectLabel]
+            ?.toString()
+            ?.toLowerCase()
+            ?.trim()
+            ?.includes(searchRightValue?.toLowerCase()?.trim())
+        );
+
+        return generateSelectKey(datasRightBySearch);
+      }
+
       return generateSelectKey(datasRight);
     }
-  }, [oriDatasRef.current, targetKeysRef?.current, filterDatasRef?.current]);
+  }, [
+    oriDatasRef.current,
+    targetKeysRef?.current,
+    searchRightValue,
+    objLengthSelected?.right,
+  ]);
 
   const onFakeFetch = () => {
     return new Promise((resolve) => {
@@ -214,6 +243,42 @@ const CustomTransfer_ = ({
     [pageLeft, pageRight, filterDatasRef?.current, filterDatasRight]
   );
 
+  const onSearch = useCallback(
+    ({ direction, value }) => {
+      if (direction === "left") {
+        const targetKeysRefSet = new Set(targetKeysRef?.current || []);
+
+        const leftDatas = oriDatasRef?.current?.filter(
+          (data) => !targetKeysRefSet?.has(data?.key)
+        );
+
+        const newFilterDatas =
+          value?.trim() === ""
+            ? leftDatas
+            : leftDatas?.filter((data) => {
+                return data?.[selectLabel]
+                  ?.toString()
+                  ?.toLowerCase()
+                  ?.includes(value);
+              });
+
+        filterDatasRef.current = newFilterDatas;
+
+        setSearchLeftValue(value);
+      } else {
+        setSearchRightValue(value);
+      }
+    },
+    [
+      selectLabel,
+      filterDatasRef?.current,
+      oriDatasRef?.current,
+      targetKeysRef?.current,
+      searchLeftValue,
+      searchRightValue,
+    ]
+  );
+
   useEffect(() => {
     fetchDatasource();
   }, [selectLabel, selectValue]);
@@ -262,29 +327,22 @@ const CustomTransfer_ = ({
           ]}
           targetKeys={targetKeysRef.current}
           showSearch
-          // onSearch={(direction, value) => {
-          //   if (direction === "left") {
-          //     const newFilterDatas = value==='' ?  filterDatasRef?.current?.filter(
-          //       (data) => data?.[selectLabel] === value
-          //     );
-
-          //     filterDatasRef.current = newFilterDatas;
-
-          //     setObjLengthSelected((prev) => ({
-          //       ...prev,
-          //       left: newFilterDatas?.length,
-          //     }));
-          //   } else {
-          //   }
-          //   console.log("dd L ", { direction, value });
-          // }}
-          // filterOption={(inputValue, option) => {
-          //   console.log("inop : ", {
-          //     inputValue,
-          //     option,
-          //   });
-          //   return option.data.indexOf(inputValue) > -1;
-          // }}
+          onSearch={(direction, value) => {
+            if (oriDatasRef?.current?.length >= 50000) {
+              clearTimeout(timeoutSearchRef?.current);
+              timeoutSearchRef.current = setTimeout(() => {
+                onSearch({
+                  direction,
+                  value: value?.trim()?.toLowerCase(),
+                });
+              }, 250);
+            } else {
+              onSearch({
+                direction,
+                value: value?.trim()?.toLowerCase(),
+              });
+            }
+          }}
           showSelectAll={false}
           selectAllLabels={[
             <TransferMenuDropdown
@@ -297,6 +355,8 @@ const CustomTransfer_ = ({
               objSelectIdxRef={objSelectIdxRef}
               key="transfer-dropdown-left"
               page={pageLeft}
+              searchValue={searchLeftValue}
+              selectLabel={selectLabel}
             />,
             <TransferMenuDropdown
               dataSourceByPage={onFilterDatas({ direction: "right" })}
@@ -308,6 +368,8 @@ const CustomTransfer_ = ({
               objSelectIdxRef={objSelectIdxRef}
               key="transfer-dropdown-right"
               page={pageRight}
+              searchValue={searchRightValue}
+              selectLabel={selectLabel}
             />,
           ]}
           footer={(_, { direction }) => {
@@ -341,7 +403,6 @@ const CustomTransfer_ = ({
 
             return (
               <Table
-                // dataSource={dataSource}
                 dataSource={onFilterDatas({ direction })}
                 showHeader={false}
                 columns={[

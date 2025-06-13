@@ -1,6 +1,6 @@
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, Space } from "antd";
-import { Fragment, memo, useMemo } from "react";
+import { memo, useMemo } from "react";
 
 const TransferMenuDropdown_ = ({
   selectedKeyRef,
@@ -11,17 +11,29 @@ const TransferMenuDropdown_ = ({
   dataSourceByDirection = [],
   objSelectIdxRef,
   page,
+  searchValue = "",
+  selectLabel,
 }) => {
   const titleDropdown = useMemo(() => {
+    const dataSourceByDirectionLength =
+      searchValue === ""
+        ? dataSourceByDirection?.length
+        : dataSourceByDirection?.filter((data) => {
+            return data?.[selectLabel]
+              ?.toString()
+              ?.toLowerCase()
+              ?.includes(searchValue);
+          })?.length;
+
     const selectedLength = objLengthSelected?.[direction];
 
-    const textItem = dataSourceByDirection?.length > 1 ? "items" : "item";
+    const textItem = dataSourceByDirectionLength > 1 ? "items" : "item";
 
     if (selectedLength > 0) {
-      return `${selectedLength}/${dataSourceByDirection?.length} ${textItem}`;
+      return `${selectedLength}/${dataSourceByDirectionLength} ${textItem}`;
     }
-    return `${dataSourceByDirection?.length} ${textItem}`;
-  }, [dataSourceByDirection, objLengthSelected, direction]);
+    return `${dataSourceByDirectionLength} ${textItem}`;
+  }, [dataSourceByDirection, objLengthSelected, direction, searchValue]);
 
   const isCheckedAllCurrent = useMemo(() => {
     return dataSourceByPage?.every((data) =>
